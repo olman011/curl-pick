@@ -31,7 +31,7 @@ body::before {
   background-repeat: no-repeat;
   background-position: center 85%;
   background-size: min(85vw, 460px);
-  opacity: .75;
+  opacity: .06;
   z-index: -1;
   pointer-events: none;
 }
@@ -118,6 +118,8 @@ p.sub { color: var(--muted); margin: 0 0 16px; font-size: 14px; }
 .pick input:checked + span { border-color: var(--navy); background: var(--navy); color: #fff; }
 .pick input:disabled + span { opacity: .75; }
 .pick input:focus-visible + span { outline: 3px solid var(--gold); }
+.team-record { font-size: 12px; font-weight: 400; color: var(--muted); }
+.pick input:checked + span .team-record { color: rgba(255,255,255,.75); }
 
 .result-team { display: flex; justify-content: space-between; gap: 10px; padding: 6px 0; }
 .result-team.win { font-weight: 700; }

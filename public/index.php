@@ -60,6 +60,12 @@ $picks = user_picks_for_week((int)$user['id'], (int)$week['id']);
 $byes = week_bye_teams((int)$week['id']);
 $locked = week_is_locked($week);
 $weeks = weeks_all(true);
+
+// Win/loss record shown next to each team name, e.g. "(3:1)".
+$records = [];
+foreach (standings((int)$week['season_id']) as $row) {
+    $records[(int)$row['id']] = (int)$row['wins'] . ':' . (int)$row['losses'];
+}
 ?>
 <h1>Week <?= (int)$week['week_number'] ?> picks</h1>
 <p class="sub"><?= h(fmt_date($week['game_date'])) ?></p>
@@ -105,13 +111,13 @@ $weeks = weeks_all(true);
         <label class="pick">
           <input type="radio" name="pick[<?= (int)$game['id'] ?>]" value="<?= (int)$game['home_team_id'] ?>"
                  <?= $picked === (int)$game['home_team_id'] ? 'checked' : '' ?> <?= $locked ? 'disabled' : '' ?>>
-          <span><?= h($game['home_name']) ?></span>
+          <span><?= h($game['home_name']) ?> <span class="team-record">(<?= h($records[(int)$game['home_team_id']] ?? '0:0') ?>)</span></span>
         </label>
         <div class="vs">vs</div>
         <label class="pick">
           <input type="radio" name="pick[<?= (int)$game['id'] ?>]" value="<?= (int)$game['away_team_id'] ?>"
                  <?= $picked === (int)$game['away_team_id'] ? 'checked' : '' ?> <?= $locked ? 'disabled' : '' ?>>
-          <span><?= h($game['away_name']) ?></span>
+          <span><?= h($game['away_name']) ?> <span class="team-record">(<?= h($records[(int)$game['away_team_id']] ?? '0:0') ?>)</span></span>
         </label>
       </div>
     </div>
