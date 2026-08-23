@@ -31,7 +31,7 @@ body::before {
   background-repeat: no-repeat;
   background-position: center 85%;
   background-size: min(85vw, 460px);
-  opacity: .06;
+  opacity: .60;
   z-index: -1;
   pointer-events: none;
 }
@@ -101,7 +101,7 @@ p.sub { color: var(--muted); margin: 0 0 16px; font-size: 14px; }
 
 .pick { display: block; cursor: pointer; }
 .pick input { position: absolute; opacity: 0; pointer-events: none; }
-.pick span {
+.pick > span {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -118,7 +118,7 @@ p.sub { color: var(--muted); margin: 0 0 16px; font-size: 14px; }
 .pick input:checked + span { border-color: var(--navy); background: var(--navy); color: #fff; }
 .pick input:disabled + span { opacity: .75; }
 .pick input:focus-visible + span { outline: 3px solid var(--gold); }
-.team-record { font-size: 12px; font-weight: 400; color: var(--muted); }
+.team-record { font-size: 12px; font-weight: 400; color: var(--muted); margin-left: 4px; }
 .pick input:checked + span .team-record { color: rgba(255,255,255,.75); }
 
 .result-team { display: flex; justify-content: space-between; gap: 10px; padding: 6px 0; }

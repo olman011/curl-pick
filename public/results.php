@@ -64,7 +64,7 @@ if (!$games): ?>
 ?>
   <div class="game">
     <div class="game-meta">
-      <span>Game <?= (int)$game['slot'] ?><?= $game['location'] ? ' &middot; ' . h($game['location']) : '' ?></span>
+      <span><?= $game['location'] ? h($game['location']) : '&nbsp;' ?></span>
       <span><?= $game['status'] === 'final' ? 'Final' : 'Scheduled' ?></span>
     </div>
     <div class="result-team <?= $winner === (int)$game['home_team_id'] ? 'win' : '' ?>">

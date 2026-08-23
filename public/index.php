@@ -96,7 +96,7 @@ foreach (standings((int)$week['season_id']) as $row) {
   ?>
     <div class="game">
       <div class="game-meta">
-        <span>Game <?= (int)$game['slot'] ?><?= $game['location'] ? ' &middot; ' . h($game['location']) : '' ?></span>
+        <span><?= $game['location'] ? h($game['location']) : '&nbsp;' ?></span>
         <?php if ($game['status'] === 'final'): ?>
           <span><?= (int)$game['home_score'] ?>&ndash;<?= (int)$game['away_score'] ?> final
             <?php if ($picked !== null && $winner !== null): ?>
