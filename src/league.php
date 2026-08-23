@@ -1,22 +1,69 @@
 <?php
 declare(strict_types=1);
 
-function teams_all(bool $activeOnly = false): array
+function seasons_all(): array
 {
-    $sql = 'SELECT * FROM teams';
-    if ($activeOnly) {
-        $sql .= ' WHERE is_active = 1';
-    }
-    return db_all($sql . ' ORDER BY name');
+    return db_all('SELECT * FROM seasons ORDER BY created_at DESC, id DESC');
 }
 
-function weeks_all(bool $publishedOnly = false): array
+function season_find(int $id): ?array
 {
-    $sql = 'SELECT * FROM weeks';
-    if ($publishedOnly) {
-        $sql .= ' WHERE is_published = 1';
+    return db_one('SELECT * FROM seasons WHERE id = ?', [$id]);
+}
+
+function season_active(): ?array
+{
+    return db_one('SELECT * FROM seasons WHERE is_active = 1 LIMIT 1');
+}
+
+/** Resolves a season for display: the given id if valid, else the active season. */
+function season_resolve(?int $seasonId): ?array
+{
+    if ($seasonId) {
+        return season_find($seasonId);
     }
-    return db_all($sql . ' ORDER BY week_number');
+    return season_active();
+}
+
+/** Makes the given season the only active one. Everything else is deactivated. */
+function season_activate(int $id): void
+{
+    $pdo = db();
+    $pdo->beginTransaction();
+    try {
+        db_run('UPDATE seasons SET is_active = 0');
+        db_run('UPDATE seasons SET is_active = 1 WHERE id = ?', [$id]);
+        $pdo->commit();
+    } catch (Throwable $e) {
+        $pdo->rollBack();
+        throw $e;
+    }
+}
+
+/** Most recent week in a season, for archive views that have no "current" concept. */
+function season_latest_week(int $seasonId): ?array
+{
+    return db_one('SELECT * FROM weeks WHERE season_id = ? ORDER BY week_number DESC LIMIT 1', [$seasonId]);
+}
+
+function teams_all(bool $activeOnly = false, ?int $seasonId = null): array
+{
+    $seasonId ??= (int)(season_active()['id'] ?? 0);
+    $sql = 'SELECT * FROM teams WHERE season_id = ?';
+    if ($activeOnly) {
+        $sql .= ' AND is_active = 1';
+    }
+    return db_all($sql . ' ORDER BY name', [$seasonId]);
+}
+
+function weeks_all(bool $publishedOnly = false, ?int $seasonId = null): array
+{
+    $seasonId ??= (int)(season_active()['id'] ?? 0);
+    $sql = 'SELECT * FROM weeks WHERE season_id = ?';
+    if ($publishedOnly) {
+        $sql .= ' AND is_published = 1';
+    }
+    return db_all($sql . ' ORDER BY week_number', [$seasonId]);
 }
 
 function week_find(int $id): ?array
@@ -24,16 +71,24 @@ function week_find(int $id): ?array
     return db_one('SELECT * FROM weeks WHERE id = ?', [$id]);
 }
 
-/** The week members should be looking at: the next one still open, else the most recent. */
+/** The week members should be looking at: the next one still open, else the most recent. Active season only. */
 function week_current(): ?array
 {
+    $season = season_active();
+    if (!$season) {
+        return null;
+    }
     $week = db_one(
-        'SELECT * FROM weeks WHERE is_published = 1 AND lock_at > NOW() ORDER BY lock_at LIMIT 1'
+        'SELECT * FROM weeks WHERE season_id = ? AND is_published = 1 AND lock_at > NOW() ORDER BY lock_at LIMIT 1',
+        [$season['id']]
     );
     if ($week) {
         return $week;
     }
-    return db_one('SELECT * FROM weeks WHERE is_published = 1 ORDER BY lock_at DESC LIMIT 1');
+    return db_one(
+        'SELECT * FROM weeks WHERE season_id = ? AND is_published = 1 ORDER BY lock_at DESC LIMIT 1',
+        [$season['id']]
+    );
 }
 
 function week_is_locked(array $week): bool
@@ -56,15 +111,20 @@ function week_games(int $weekId): array
 
 function week_bye_teams(int $weekId): array
 {
+    $week = week_find($weekId);
+    if (!$week) {
+        return [];
+    }
     return db_all(
         'SELECT t.* FROM teams t
-         WHERE t.is_active = 1
+         WHERE t.season_id = :season
+           AND t.is_active = 1
            AND t.id NOT IN (
              SELECT home_team_id FROM games WHERE week_id = :w
              UNION SELECT away_team_id FROM games WHERE week_id = :w2
            )
          ORDER BY t.name',
-        ['w' => $weekId, 'w2' => $weekId]
+        ['season' => $week['season_id'], 'w' => $weekId, 'w2' => $weekId]
     );
 }
 
@@ -116,27 +176,33 @@ function weekly_leaderboard(int $weekId): array
     );
 }
 
-function season_leaderboard(): array
+/** Season-wide leaderboard, scoped to one season (defaults to the active one). */
+function season_leaderboard(?int $seasonId = null): array
 {
+    $seasonId ??= (int)(season_active()['id'] ?? 0);
     return db_all(
         "SELECT u.id, u.name,
-                SUM(CASE WHEN g.status = 'final'
+                SUM(CASE WHEN w.id IS NOT NULL AND g.status = 'final'
                          AND g.home_score <> g.away_score
                          AND p.picked_team_id = IF(g.home_score > g.away_score, g.home_team_id, g.away_team_id)
                     THEN 1 ELSE 0 END) AS correct,
-                SUM(CASE WHEN g.status = 'final' AND g.home_score <> g.away_score THEN 1 ELSE 0 END) AS graded,
-                COUNT(DISTINCT g.week_id) AS weeks_played
+                SUM(CASE WHEN w.id IS NOT NULL AND g.status = 'final' AND g.home_score <> g.away_score THEN 1 ELSE 0 END) AS graded,
+                COUNT(DISTINCT CASE WHEN w.id IS NOT NULL THEN g.week_id END) AS weeks_played
          FROM users u
          LEFT JOIN picks p ON p.user_id = u.id
          LEFT JOIN games g ON g.id = p.game_id
+         LEFT JOIN weeks w ON w.id = g.week_id AND w.season_id = ?
          WHERE u.is_active = 1
          GROUP BY u.id, u.name
-         ORDER BY correct DESC, u.name"
+         ORDER BY correct DESC, u.name",
+        [$seasonId]
     );
 }
 
-function standings(): array
+/** Team standings, scoped to one season (defaults to the active one). */
+function standings(?int $seasonId = null): array
 {
+    $seasonId ??= (int)(season_active()['id'] ?? 0);
     return db_all(
         "SELECT t.id, t.name,
                 COUNT(r.game_id) AS played,
@@ -163,9 +229,10 @@ function standings(): array
                    g.away_score, g.home_score
             FROM games g WHERE g.status = 'final' AND g.home_score IS NOT NULL AND g.away_score IS NOT NULL
          ) r ON r.team_id = t.id
-         WHERE t.is_active = 1
+         WHERE t.season_id = ? AND t.is_active = 1
          GROUP BY t.id, t.name
-         ORDER BY points DESC, diff DESC, t.name"
+         ORDER BY points DESC, diff DESC, t.name",
+        [$seasonId]
     );
 }
 

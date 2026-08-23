@@ -11,13 +11,16 @@ function layout_header(string $title, bool $chrome = true): void
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0d2b45">
+<meta name="theme-color" content="#1857a4">
 <title><?= h($title) ?> &middot; <?= h($appName) ?></title>
-<link rel="stylesheet" href="/assets/app.css?v=3">
+<link rel="stylesheet" href="/assets/app.css?v=6">
 </head>
 <body>
 <header class="topbar">
-  <a class="brand" href="/"><?= h($appName) ?></a>
+  <a class="brand" href="/">
+    <img class="brand-icon" src="/assets/rock.svg" alt="" width="30" height="19">
+    <?= h($appName) ?>
+  </a>
   <?php if ($chrome && $user): ?>
     <a class="topbar-user" href="/profile.php"><?= h($user['name']) ?></a>
   <?php endif; ?>

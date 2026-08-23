@@ -5,6 +5,12 @@ require APP_ROOT . '/src/layout.php';
 
 require_admin();
 
+$season = season_active();
+if (!$season) {
+    flash('Create a season before scheduling weeks.', 'error');
+    redirect('/admin/seasons.php');
+}
+
 if (is_post()) {
     csrf_check();
     $action = (string)($_POST['action'] ?? '');
@@ -14,19 +20,20 @@ if (is_post()) {
         $lockTime = trim((string)($_POST['lock_time'] ?? (string)config('app.default_lock_time')));
         if (!$number || $date === '') {
             flash('Week number and date are required.', 'error');
-        } elseif (db_one('SELECT id FROM weeks WHERE week_number = ?', [$number])) {
-            flash('Week ' . $number . ' already exists.', 'error');
+        } elseif (db_one('SELECT id FROM weeks WHERE season_id = ? AND week_number = ?', [$season['id'], $number])) {
+            flash('Week ' . $number . ' already exists this season.', 'error');
         } else {
             db_run(
-                'INSERT INTO weeks (week_number, game_date, lock_at) VALUES (?, ?, ?)',
-                [$number, $date, $date . ' ' . $lockTime . ':00']
+                'INSERT INTO weeks (season_id, week_number, game_date, lock_at) VALUES (?, ?, ?, ?)',
+                [$season['id'], $number, $date, $date . ' ' . $lockTime . ':00']
             );
             flash('Week ' . $number . ' created. Add the matchups next.');
             redirect('/admin/week.php?id=' . (int)db()->lastInsertId());
         }
     } elseif ($action === 'delete') {
         $id = post_int('week_id');
-        if ($id) {
+        // Only allow deleting a week that actually belongs to the active season.
+        if ($id && db_one('SELECT id FROM weeks WHERE id = ? AND season_id = ?', [$id, $season['id']])) {
             db_run('DELETE FROM weeks WHERE id = ?', [$id]);
             flash('Week deleted.');
         }
@@ -34,11 +41,12 @@ if (is_post()) {
     redirect('/admin/schedule.php');
 }
 
-$weeks = weeks_all();
+$weeks = weeks_all(false, (int)$season['id']);
 $nextNumber = $weeks ? (int)max(array_column($weeks, 'week_number')) + 1 : 1;
 layout_header('Schedule');
 ?>
 <h1>Weeks &amp; schedule</h1>
+<p class="sub">Season: <?= h($season['name']) ?></p>
 
 <form method="post" class="card">
   <?= csrf_field() ?>

@@ -7,6 +7,12 @@ $user = require_login();
 
 $weekId = get_int('week') ?? post_int('week_id');
 $week = $weekId ? week_find($weekId) : week_current();
+// Picks only ever apply to the active season - a link to an old week (or a stale
+// bookmark from a season that's since ended) falls back to the current week instead.
+$activeSeason = season_active();
+if ($week && (!$activeSeason || (int)$week['season_id'] !== (int)$activeSeason['id'])) {
+    $week = week_current();
+}
 
 if (is_post()) {
     csrf_check();

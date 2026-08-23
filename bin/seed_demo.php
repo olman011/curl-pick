@@ -13,21 +13,24 @@ if ((int)db_value('SELECT COUNT(*) FROM teams') > 0) {
     exit("Teams already exist - refusing to seed.\n");
 }
 
+db_run('INSERT INTO seasons (name, is_active) VALUES (?, 1)', ['Demo Season']);
+$seasonId = (int)db()->lastInsertId();
+
 $teamNames = [
     'Anderson', 'Bergman', 'Carlson', 'Dahl', 'Erickson', 'Fredrickson',
     'Gustafson', 'Halvorson', 'Iverson', 'Johnson', 'Knutson', 'Larson',
     'Monson', 'Nelson', 'Olson', 'Peterson', 'Quarnstrom', 'Rasmussen',
 ];
 foreach ($teamNames as $name) {
-    db_run('INSERT INTO teams (name) VALUES (?)', [$name]);
+    db_run('INSERT INTO teams (season_id, name) VALUES (?, ?)', [$seasonId, $name]);
 }
-$teams = db_all('SELECT id FROM teams ORDER BY id');
+$teams = db_all('SELECT id FROM teams WHERE season_id = ? ORDER BY id', [$seasonId]);
 $teamIds = array_map(static fn($t) => (int)$t['id'], $teams);
 
 $lockTime = (string)config('app.default_lock_time');
 for ($week = 1; $week <= 3; $week++) {
     $date = (new DateTimeImmutable('tuesday this week'))->modify('+' . ($week - 3) . ' week')->format('Y-m-d');
-    db_run('INSERT INTO weeks (week_number, game_date, lock_at) VALUES (?, ?, ?)', [$week, $date, "$date $lockTime:00"]);
+    db_run('INSERT INTO weeks (season_id, week_number, game_date, lock_at) VALUES (?, ?, ?, ?)', [$seasonId, $week, $date, "$date $lockTime:00"]);
     $weekId = (int)db()->lastInsertId();
 
     $rotated = $teamIds;
@@ -61,4 +64,4 @@ foreach ($members as [$name, $email, $isAdmin]) {
     }
 }
 
-echo "Seeded 18 teams, 3 weeks and 3 members (password: curling123).\n";
+echo "Seeded a demo season with 18 teams, 3 weeks and 3 members (password: curling123).\n";

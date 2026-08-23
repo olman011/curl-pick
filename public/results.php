@@ -4,24 +4,53 @@ require __DIR__ . '/../src/bootstrap.php';
 require APP_ROOT . '/src/layout.php';
 
 $user = require_login();
-$weeks = weeks_all(true);
-$weekId = get_int('week');
-$week = $weekId ? week_find($weekId) : week_current();
+
+$season = season_resolve(get_int('season'));
+$seasons = seasons_all();
 
 layout_header('Results');
+
+if (!$season) {
+    echo '<h1>Results</h1><p class="sub">No season has been created yet.</p>';
+    layout_footer();
+    exit;
+}
+
+$isArchive = (int)$season['is_active'] !== 1;
+$weeks = weeks_all(true, (int)$season['id']);
+$weekId = get_int('week');
+$week = $weekId ? week_find($weekId) : null;
+if ($week && (int)$week['season_id'] !== (int)$season['id']) {
+    $week = null;
+}
+if (!$week) {
+    $week = $isArchive ? season_latest_week((int)$season['id']) : week_current();
+}
 ?>
 <h1>Results</h1>
+<p class="sub">Season: <?= h($season['name']) ?><?= $isArchive ? ' (archive)' : '' ?></p>
+
+<?php if (count($seasons) > 1): ?>
+<div class="week-nav">
+  <?php foreach ($seasons as $s): ?>
+    <a href="/results.php?season=<?= (int)$s['id'] ?>" class="<?= (int)$s['id'] === (int)$season['id'] ? 'active' : '' ?>"><?= h($s['name']) ?></a>
+  <?php endforeach; ?>
+</div>
+<?php endif; ?>
+
 <?php if (!$week): ?>
   <p class="sub">No weeks published yet.</p>
   <?php layout_footer(); exit; ?>
 <?php endif; ?>
 <p class="sub">Week <?= (int)$week['week_number'] ?> &middot; <?= h(fmt_date($week['game_date'])) ?></p>
 
+<?php if (count($weeks) > 1): ?>
 <div class="week-nav">
   <?php foreach ($weeks as $w): ?>
-    <a href="/results.php?week=<?= (int)$w['id'] ?>" class="<?= (int)$w['id'] === (int)$week['id'] ? 'active' : '' ?>">Wk <?= (int)$w['week_number'] ?></a>
+    <a href="/results.php?season=<?= (int)$season['id'] ?>&amp;week=<?= (int)$w['id'] ?>" class="<?= (int)$w['id'] === (int)$week['id'] ? 'active' : '' ?>">Wk <?= (int)$w['week_number'] ?></a>
   <?php endforeach; ?>
 </div>
+<?php endif; ?>
 
 <?php
 $games = week_results_summary((int)$week['id']);

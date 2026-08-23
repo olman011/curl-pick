@@ -12,6 +12,12 @@ if (!$week) {
     exit('Week not found.');
 }
 
+$season = season_active();
+if (!$season || (int)$week['season_id'] !== (int)$season['id']) {
+    flash('That week belongs to a past season and can no longer be edited. Past weeks are viewable read-only in Results.', 'error');
+    redirect('/admin/schedule.php');
+}
+
 $slots = (int)config('app.games_per_week');
 $teams = teams_all(true);
 
