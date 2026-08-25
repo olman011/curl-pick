@@ -66,6 +66,9 @@ $records = [];
 foreach (standings((int)$week['season_id']) as $row) {
     $records[(int)$row['id']] = (int)$row['wins'] . ':' . (int)$row['losses'];
 }
+
+// How everyone picked, shown flanking each matchup once picks are locked.
+$pickCounts = $locked ? week_pick_counts((int)$week['id']) : [];
 ?>
 <h1>Week <?= (int)$week['week_number'] ?> picks</h1>
 <p class="sub"><?= h(fmt_date($week['game_date'])) ?></p>
@@ -108,16 +111,23 @@ foreach (standings((int)$week['season_id']) as $row) {
         <?php endif; ?>
       </div>
       <div class="matchup">
+        <?php $c = $locked ? ($pickCounts[(int)$game['id']] ?? ['home' => 0, 'away' => 0]) : null; ?>
         <label class="pick">
           <input type="radio" name="pick[<?= (int)$game['id'] ?>]" value="<?= (int)$game['home_team_id'] ?>"
                  <?= $picked === (int)$game['home_team_id'] ? 'checked' : '' ?> <?= $locked ? 'disabled' : '' ?>>
-          <span><?= h($game['home_name']) ?> <span class="team-record">(<?= h($records[(int)$game['home_team_id']] ?? '0:0') ?>)</span></span>
+          <span>
+            <?php if ($locked): ?><span class="pick-num pick-num-left"><?= $c['home'] ?></span><?php endif; ?>
+            <?= h($game['home_name']) ?> <span class="team-record">(<?= h($records[(int)$game['home_team_id']] ?? '0:0') ?>)</span>
+          </span>
         </label>
         <div class="vs">vs</div>
         <label class="pick">
           <input type="radio" name="pick[<?= (int)$game['id'] ?>]" value="<?= (int)$game['away_team_id'] ?>"
                  <?= $picked === (int)$game['away_team_id'] ? 'checked' : '' ?> <?= $locked ? 'disabled' : '' ?>>
-          <span><?= h($game['away_name']) ?> <span class="team-record">(<?= h($records[(int)$game['away_team_id']] ?? '0:0') ?>)</span></span>
+          <span>
+            <?= h($game['away_name']) ?> <span class="team-record">(<?= h($records[(int)$game['away_team_id']] ?? '0:0') ?>)</span>
+            <?php if ($locked): ?><span class="pick-num pick-num-right"><?= $c['away'] ?></span><?php endif; ?>
+          </span>
         </label>
       </div>
     </div>

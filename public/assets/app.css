@@ -98,6 +98,9 @@ p.sub { color: var(--muted); margin: 0 0 16px; font-size: 14px; }
 .game-meta { display: flex; justify-content: space-between; color: var(--muted); font-size: 12px; margin-bottom: 8px; }
 .matchup { display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; align-items: stretch; }
 .vs { align-self: center; color: var(--muted); font-size: 12px; font-weight: 700; }
+.pick > span.with-count { justify-content: space-between; }
+.pick-num { font-size: 16px; font-weight: 700; color: var(--navy); }
+.pick input:checked + span .pick-num { color: #fff; }
 
 .pick { display: block; cursor: pointer; }
 .pick input { position: absolute; opacity: 0; pointer-events: none; }
@@ -107,19 +110,24 @@ p.sub { color: var(--muted); margin: 0 0 16px; font-size: 14px; }
   justify-content: center;
   text-align: center;
   min-height: 52px;
-  padding: 8px 10px;
+  padding: 8px 24px;
   border: 2px solid var(--line);
   border-radius: 10px;
   font-weight: 600;
   font-size: 15px;
   background: #fff;
   line-height: 1.2;
+  position: relative;
 }
 .pick input:checked + span { border-color: var(--navy); background: var(--navy); color: #fff; }
 .pick input:disabled + span { opacity: .75; }
 .pick input:focus-visible + span { outline: 3px solid var(--gold); }
 .team-record { font-size: 12px; font-weight: 400; color: var(--muted); margin-left: 4px; }
 .pick input:checked + span .team-record { color: rgba(255,255,255,.75); }
+.pick-num { position: absolute; top: 50%; transform: translateY(-50%); font-size: 15px; font-weight: 700; color: var(--navy); }
+.pick-num-left { left: 6px; }
+.pick-num-right { right: 6px; }
+.pick input:checked + span .pick-num { color: #fff; }
 
 .result-team { display: flex; justify-content: space-between; gap: 10px; padding: 6px 0; }
 .result-team.win { font-weight: 700; }

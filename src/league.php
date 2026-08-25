@@ -109,6 +109,26 @@ function week_games(int $weekId): array
     );
 }
 
+/** @return array<int,array{home:int,away:int}> game_id => pick counts for each side */
+function week_pick_counts(int $weekId): array
+{
+    $rows = db_all(
+        'SELECT g.id AS game_id,
+                SUM(p.picked_team_id = g.home_team_id) AS home_count,
+                SUM(p.picked_team_id = g.away_team_id) AS away_count
+         FROM games g
+         LEFT JOIN picks p ON p.game_id = g.id
+         WHERE g.week_id = ?
+         GROUP BY g.id',
+        [$weekId]
+    );
+    $counts = [];
+    foreach ($rows as $row) {
+        $counts[(int)$row['game_id']] = ['home' => (int)$row['home_count'], 'away' => (int)$row['away_count']];
+    }
+    return $counts;
+}
+
 function week_bye_teams(int $weekId): array
 {
     $week = week_find($weekId);
