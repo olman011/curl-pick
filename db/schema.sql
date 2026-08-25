@@ -40,22 +40,39 @@ CREATE TABLE password_resets (
   CONSTRAINT fk_resets_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- A season is the unit of play: teams and weeks both belong to exactly one.
+-- Exactly one season should have is_active = 1 at a time (enforced in app code,
+-- see season_activate() in src/league.php). Picks and the live standings/leaderboard
+-- only ever operate on the active season; past seasons remain as a read-only archive.
+CREATE TABLE seasons (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(80) NOT NULL,
+  is_active TINYINT(1) NOT NULL DEFAULT 0,
+  drop_weeks TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_seasons_name (name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE teams (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  season_id INT UNSIGNED NOT NULL,
   name VARCHAR(80) NOT NULL,
   is_active TINYINT(1) NOT NULL DEFAULT 1,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE KEY uq_teams_name (name)
+  UNIQUE KEY uq_teams_season_name (season_id, name),
+  CONSTRAINT fk_teams_season FOREIGN KEY (season_id) REFERENCES seasons(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE weeks (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  season_id INT UNSIGNED NOT NULL,
   week_number INT UNSIGNED NOT NULL,
   game_date DATE NOT NULL,
   lock_at DATETIME NOT NULL,
   is_published TINYINT(1) NOT NULL DEFAULT 1,
   notes VARCHAR(255) NULL,
-  UNIQUE KEY uq_weeks_number (week_number)
+  UNIQUE KEY uq_weeks_season_number (season_id, week_number),
+  CONSTRAINT fk_weeks_season FOREIGN KEY (season_id) REFERENCES seasons(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE games (
@@ -71,8 +88,8 @@ CREATE TABLE games (
   UNIQUE KEY uq_games_week_slot (week_id, slot),
   KEY idx_games_week (week_id),
   CONSTRAINT fk_games_week FOREIGN KEY (week_id) REFERENCES weeks(id) ON DELETE CASCADE,
-  CONSTRAINT fk_games_home FOREIGN KEY (home_team_id) REFERENCES teams(id),
-  CONSTRAINT fk_games_away FOREIGN KEY (away_team_id) REFERENCES teams(id)
+  CONSTRAINT fk_games_home FOREIGN KEY (home_team_id) REFERENCES teams(id) ON DELETE CASCADE,
+  CONSTRAINT fk_games_away FOREIGN KEY (away_team_id) REFERENCES teams(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE picks (

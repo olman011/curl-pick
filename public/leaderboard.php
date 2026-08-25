@@ -40,8 +40,15 @@ if (!$week) {
 <?php endif; ?>
 
 <h2>Season</h2>
+<?php
+$gradedWeeks = season_graded_week_count((int)$season['id']);
+$effectiveDrop = min((int)$season['drop_weeks'], max(0, $gradedWeeks - 1));
+if ($effectiveDrop > 0):
+?>
+  <p class="sub">Best <?= $gradedWeeks - $effectiveDrop ?> of <?= $gradedWeeks ?> scored weeks count toward the total &mdash; each player's worst <?= $effectiveDrop ?> week<?= $effectiveDrop === 1 ? '' : 's' ?> (including any missed week) <?= $effectiveDrop === 1 ? 'is' : 'are' ?> dropped.</p>
+<?php endif; ?>
 <table>
-  <thead><tr><th>#</th><th>Member</th><th class="num">Correct</th><th class="num">Weeks</th></tr></thead>
+  <thead><tr><th>#</th><th>Member</th><th class="num">Correct</th><th class="num">Counted</th></tr></thead>
   <tbody>
   <?php $rank = 0; foreach (season_leaderboard((int)$season['id']) as $row): $rank++; ?>
     <tr class="<?= (int)$row['id'] === (int)$user['id'] ? 'me' : '' ?>">

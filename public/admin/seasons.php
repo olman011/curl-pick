@@ -37,6 +37,15 @@ if (is_post()) {
             db_run('UPDATE seasons SET name = ? WHERE id = ?', [$name, $id]);
             flash('Season renamed.');
         }
+    } elseif ($action === 'set_drop_weeks') {
+        $id = post_int('season_id');
+        $drop = post_int('drop_weeks');
+        if ($id && $drop !== null && $drop >= 0) {
+            db_run('UPDATE seasons SET drop_weeks = ? WHERE id = ?', [$drop, $id]);
+            flash('Drop-weeks updated.');
+        } else {
+            flash('Enter a whole number of 0 or more.', 'error');
+        }
     } elseif ($action === 'delete') {
         $id = post_int('season_id');
         $season = $id ? season_find($id) : null;
@@ -73,6 +82,18 @@ layout_header('Seasons');
   <div class="card">
     <strong><?= h($season['name']) ?></strong><?= $isActive ? ' &middot; <span class="tag tag-open">active</span>' : '' ?>
     <div class="muted"><?= $teamCount ?> teams &middot; <?= $weekCount ?> weeks</div>
+
+    <form method="post" class="row" style="margin-top:10px;align-items:center">
+      <?= csrf_field() ?>
+      <input type="hidden" name="action" value="set_drop_weeks">
+      <input type="hidden" name="season_id" value="<?= (int)$season['id'] ?>">
+      <label class="field" style="margin:0">Drop worst
+        <input type="number" name="drop_weeks" min="0" max="20" value="<?= (int)$season['drop_weeks'] ?>" style="width:70px">
+      </label>
+      <span class="muted">week(s) per player from the season leaderboard</span>
+      <button class="btn-small btn-secondary" type="submit">Save</button>
+    </form>
+
     <div class="row" style="margin-top:10px">
       <?php if (!$isActive): ?>
         <form method="post" onsubmit="return confirm('Make &quot;<?= h($season['name']) ?>&quot; the active season? Picks and live stats will switch to it immediately.')">

@@ -196,27 +196,89 @@ function weekly_leaderboard(int $weekId): array
     );
 }
 
-/** Season-wide leaderboard, scoped to one season (defaults to the active one). */
-function season_leaderboard(?int $seasonId = null): array
+/** Count of weeks in a season that have at least one final game. */
+function season_graded_week_count(int $seasonId): int
 {
-    $seasonId ??= (int)(season_active()['id'] ?? 0);
-    return db_all(
-        "SELECT u.id, u.name,
-                SUM(CASE WHEN w.id IS NOT NULL AND g.status = 'final'
-                         AND g.home_score <> g.away_score
-                         AND p.picked_team_id = IF(g.home_score > g.away_score, g.home_team_id, g.away_team_id)
-                    THEN 1 ELSE 0 END) AS correct,
-                SUM(CASE WHEN w.id IS NOT NULL AND g.status = 'final' AND g.home_score <> g.away_score THEN 1 ELSE 0 END) AS graded,
-                COUNT(DISTINCT CASE WHEN w.id IS NOT NULL THEN g.week_id END) AS weeks_played
-         FROM users u
-         LEFT JOIN picks p ON p.user_id = u.id
-         LEFT JOIN games g ON g.id = p.game_id
-         LEFT JOIN weeks w ON w.id = g.week_id AND w.season_id = ?
-         WHERE u.is_active = 1
-         GROUP BY u.id, u.name
-         ORDER BY correct DESC, u.name",
+    return (int)db_value(
+        'SELECT COUNT(DISTINCT w.id) FROM weeks w JOIN games g ON g.week_id = w.id
+         WHERE w.season_id = ? AND g.status = "final"',
         [$seasonId]
     );
+}
+
+/**
+ * Season-wide leaderboard, scoped to one season (defaults to the active one).
+ * Each user's lowest-scoring weeks are dropped per the season's drop_weeks setting
+ * (a week with no picks submitted counts as 0 correct, so it's eligible to be
+ * dropped same as a bad week - the season's admin can adjust the drop count).
+ */
+function season_leaderboard(?int $seasonId = null): array
+{
+    $season = $seasonId ? season_find($seasonId) : season_active();
+    if (!$season) {
+        return [];
+    }
+    $seasonId = (int)$season['id'];
+    $dropWeeks = (int)$season['drop_weeks'];
+
+    $gradedWeekIds = array_column(
+        db_all(
+            'SELECT DISTINCT w.id FROM weeks w JOIN games g ON g.week_id = w.id
+             WHERE w.season_id = ? AND g.status = "final"',
+            [$seasonId]
+        ),
+        'id'
+    );
+
+    $users = db_all('SELECT id, name FROM users WHERE is_active = 1 ORDER BY name');
+    if (!$gradedWeekIds) {
+        // No graded weeks yet - everyone starts at zero, nothing to drop.
+        return array_map(static fn($u) => ['id' => (int)$u['id'], 'name' => $u['name'], 'correct' => 0, 'weeks_played' => 0], $users);
+    }
+
+    $placeholders = implode(',', array_fill(0, count($gradedWeekIds), '?'));
+    $rows = db_all(
+        "SELECT u.id AS user_id, w.id AS week_id,
+                SUM(CASE WHEN p.picked_team_id = IF(g.home_score > g.away_score, g.home_team_id, g.away_team_id)
+                    THEN 1 ELSE 0 END) AS correct
+         FROM users u
+         CROSS JOIN weeks w
+         JOIN games g ON g.week_id = w.id AND g.status = 'final' AND g.home_score <> g.away_score
+         LEFT JOIN picks p ON p.game_id = g.id AND p.user_id = u.id
+         WHERE u.is_active = 1 AND w.id IN ($placeholders)
+         GROUP BY u.id, w.id",
+        $gradedWeekIds
+    );
+
+    // Per user, the list of correct-pick counts for every graded week (0 for a week
+    // they didn't play, since that's just as droppable as a bad week).
+    $byUser = [];
+    foreach ($users as $u) {
+        $byUser[(int)$u['id']] = array_fill_keys($gradedWeekIds, 0);
+    }
+    foreach ($rows as $row) {
+        $byUser[(int)$row['user_id']][(int)$row['week_id']] = (int)$row['correct'];
+    }
+
+    $totalWeeks = count($gradedWeekIds);
+    // Always count at least one week, even if the admin sets drop_weeks too high.
+    $effectiveDrop = min($dropWeeks, max(0, $totalWeeks - 1));
+
+    $result = [];
+    foreach ($users as $u) {
+        $weekScores = array_values($byUser[(int)$u['id']]);
+        sort($weekScores);
+        $counted = array_slice($weekScores, $effectiveDrop);
+        $result[] = [
+            'id' => (int)$u['id'],
+            'name' => $u['name'],
+            'correct' => array_sum($counted),
+            'weeks_played' => count($counted),
+        ];
+    }
+
+    usort($result, static fn($a, $b) => $b['correct'] <=> $a['correct'] ?: strcmp($a['name'], $b['name']));
+    return $result;
 }
 
 /** Team standings, scoped to one season (defaults to the active one). */
