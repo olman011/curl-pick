@@ -42,22 +42,27 @@ $isArchive = (int)$season['is_active'] !== 1;
   $streakMinimum = 3;
   $streaks = team_win_streaks((int)$season['id']);
   $position = 0;
+  $tier = 0;
   $rank = 0;
   $prevPoints = null;
   $prevDiff = null;
   foreach (standings((int)$season['id']) as $row): $position++;
-      // Teams tied on points and diff share the same rank/medal; the next distinct
-      // place picks up at its true position (e.g. two teams tied for 2nd means the
-      // next team is 4th, not 3rd - same as how ties work at the Olympics).
+      // Teams tied on points and diff share a tier. $rank (position-based, with the
+      // usual sports-style skip after a tie) drives the plain number shown once we're
+      // past 3rd. $tier counts distinct scoring tiers with no skipping, so the 1st,
+      // 2nd, and 3rd *tiers* always get gold/silver/bronze - even if an earlier tier
+      // had multiple teams in it (e.g. two teams tied for 2nd still leaves a real
+      // 3rd tier that gets bronze, rather than being skipped past medal range).
       if ($row['points'] !== $prevPoints || $row['diff'] !== $prevDiff) {
           $rank = $position;
+          $tier++;
       }
       $prevPoints = $row['points'];
       $prevDiff = $row['diff'];
       $streak = $streaks[(int)$row['id']] ?? 0;
   ?>
     <tr>
-      <td><?= $medals[$rank] ?? $rank ?></td>
+      <td><?= $medals[$tier] ?? $rank ?></td>
       <td><?= h($row['name']) ?><?= $streak >= $streakMinimum ? ' ' . $streakFlame : '' ?></td>
       <td class="num"><?= (int)$row['played'] ?></td>
       <td class="num"><?= (int)$row['wins'] ?></td>
