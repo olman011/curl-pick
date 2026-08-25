@@ -281,6 +281,37 @@ function season_leaderboard(?int $seasonId = null): array
     return $result;
 }
 
+/**
+ * Trailing win streak per team, as of their most recent finished game this season.
+ * A loss or tie resets the streak to 0; teams with no finished games aren't included.
+ * @return array<int,int> team_id => current win streak
+ */
+function team_win_streaks(int $seasonId): array
+{
+    $rows = db_all(
+        "SELECT r.team_id, r.win
+         FROM weeks w
+         JOIN games g ON g.week_id = w.id AND g.status = 'final'
+            AND g.home_score IS NOT NULL AND g.away_score IS NOT NULL
+         JOIN (
+            SELECT id AS game_id, home_team_id AS team_id, (home_score > away_score) AS win
+            FROM games WHERE status = 'final'
+            UNION ALL
+            SELECT id, away_team_id, (away_score > home_score)
+            FROM games WHERE status = 'final'
+         ) r ON r.game_id = g.id
+         WHERE w.season_id = ?
+         ORDER BY r.team_id, w.week_number",
+        [$seasonId]
+    );
+    $streaks = [];
+    foreach ($rows as $row) {
+        $teamId = (int)$row['team_id'];
+        $streaks[$teamId] = $row['win'] ? (($streaks[$teamId] ?? 0) + 1) : 0;
+    }
+    return $streaks;
+}
+
 /** Team standings, scoped to one season (defaults to the active one). */
 function standings(?int $seasonId = null): array
 {
