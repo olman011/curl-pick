@@ -28,7 +28,30 @@ if (is_post()) {
              VALUES (?, ?, NOW(), DATE_ADD(NOW(), INTERVAL 3 DAY))',
             [$userId, hash('sha256', $token)]
         );
-        $_SESSION['issued_reset'] = ['user_id' => $userId, 'url' => base_url('/reset.php?token=' . $token)];
+        $resetUrl = base_url('/reset.php?token=' . $token);
+        $_SESSION['issued_reset'] = ['user_id' => $userId, 'url' => $resetUrl];
+
+        $target = db_one('SELECT name, email FROM users WHERE id = ?', [$userId]);
+        if ($target && mail_is_configured()) {
+            $appName = (string)config('app.name');
+            $result = send_mail(
+                $target['email'],
+                $target['name'],
+                "Reset your $appName password",
+                "Hi {$target['name']},\n\n"
+                    . "Use the link below to set a new password. It's valid for 3 days and works once.\n\n"
+                    . "$resetUrl\n\n"
+                    . "If you didn't request this, you can ignore this email.\n\n"
+                    . $appName
+            );
+            if ($result['ok']) {
+                flash('Reset link emailed to ' . $target['email'] . '.');
+            } else {
+                flash('Could not email the link automatically (' . $result['error'] . '). Use the copyable link below instead.', 'error');
+            }
+        } else {
+            flash('Reset link created. Email is not configured, so copy the link below and send it manually.');
+        }
         redirect('/admin/users.php');
     }
     redirect('/admin/users.php');
@@ -54,6 +77,7 @@ layout_header('Members');
 <?php if ($issuedLink): ?>
   <div class="card">
     <strong>One-time reset link (valid 3 days)</strong>
+    <p class="muted" style="margin:4px 0 8px">Also shown here as a backup, whether or not the email above went out.</p>
     <p class="mono"><?= h($issuedLink['url']) ?></p>
     <button class="btn-small btn-secondary" type="button" onclick="navigator.clipboard.writeText('<?= h($issuedLink['url']) ?>')">Copy link</button>
   </div>
