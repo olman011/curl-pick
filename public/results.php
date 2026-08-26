@@ -71,12 +71,16 @@ if (!$games): ?>
       <span><?= $game['status'] === 'final' ? 'Final' : 'Scheduled' ?></span>
     </div>
     <div class="result-team <?= $winner === (int)$game['home_team_id'] ? 'win' : '' ?> <?= $isUpset && $winner === (int)$game['home_team_id'] ? 'underdog' : '' ?>">
-      <span><?= h($game['home_name']) ?><?= $isUpset && $winner === (int)$game['home_team_id'] ? ' <span class="tag tag-underdog" title="Won despite fewer picks">beat the odds</span>' : '' ?></span>
-      <span class="score"><?= $game['status'] === 'final' ? (int)$game['home_score'] : '&ndash;' ?></span>
+      <span class="result-name"><?= h($game['home_name']) ?><?= $isUpset && $winner === (int)$game['home_team_id'] ? ' <span class="dice-badge" title="Beat the odds - won despite fewer picks">⚄⚁</span>' : '' ?></span>
+      <?php if ($game['status'] === 'final' && $winner !== null): ?>
+        <span class="result-outcome <?= $winner === (int)$game['home_team_id'] ? 'badge-win' : 'badge-loss' ?>"><?= $winner === (int)$game['home_team_id'] ? 'W' : 'L' ?></span>
+      <?php endif; ?>
     </div>
     <div class="result-team <?= $winner === (int)$game['away_team_id'] ? 'win' : '' ?> <?= $isUpset && $winner === (int)$game['away_team_id'] ? 'underdog' : '' ?>">
-      <span><?= h($game['away_name']) ?><?= $isUpset && $winner === (int)$game['away_team_id'] ? ' <span class="tag tag-underdog" title="Won despite fewer picks">beat the odds</span>' : '' ?></span>
-      <span class="score"><?= $game['status'] === 'final' ? (int)$game['away_score'] : '&ndash;' ?></span>
+      <span class="result-name"><?= h($game['away_name']) ?><?= $isUpset && $winner === (int)$game['away_team_id'] ? ' <span class="dice-badge" title="Beat the odds - won despite fewer picks">⚄⚁</span>' : '' ?></span>
+      <?php if ($game['status'] === 'final' && $winner !== null): ?>
+        <span class="result-outcome <?= $winner === (int)$game['away_team_id'] ? 'badge-win' : 'badge-loss' ?>"><?= $winner === (int)$game['away_team_id'] ? 'W' : 'L' ?></span>
+      <?php endif; ?>
     </div>
     <?php if ($locked): ?>
       <div class="game-meta" style="margin:8px 0 0">
