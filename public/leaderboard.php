@@ -50,9 +50,24 @@ if ($effectiveDrop > 0):
 <table>
   <thead><tr><th>#</th><th>Member</th><th class="num">Correct</th><th class="num">Counted</th></tr></thead>
   <tbody>
-  <?php $rank = 0; foreach (season_leaderboard((int)$season['id']) as $row): $rank++; ?>
+  <?php
+  // Easy to tweak: change the star character or the star-gold/silver/bronze colors in app.css.
+  $starMedals = [1 => ['★', 'star-gold'], 2 => ['★', 'star-silver'], 3 => ['★', 'star-bronze']];
+  $medalsUnlocked = season_medals_unlocked((int)$season['id']);
+  $position = 0;
+  $tier = 0;
+  $rank = 0;
+  $prevCorrect = null;
+  foreach (season_leaderboard((int)$season['id']) as $row): $position++;
+      if ($row['correct'] !== $prevCorrect) {
+          $rank = $position;
+          $tier++;
+      }
+      $prevCorrect = $row['correct'];
+      $star = $medalsUnlocked ? ($starMedals[$tier] ?? null) : null;
+  ?>
     <tr class="<?= (int)$row['id'] === (int)$user['id'] ? 'me' : '' ?>">
-      <td><?= $rank ?></td>
+      <td><?= $star ? '<span class="' . $star[1] . '" title="' . ($tier === 1 ? '1st' : ($tier === 2 ? '2nd' : '3rd')) . ' place">' . $star[0] . '</span>' : $rank ?></td>
       <td><?= h($row['name']) ?></td>
       <td class="num"><?= (int)$row['correct'] ?></td>
       <td class="num"><?= (int)$row['weeks_played'] ?></td>
@@ -60,6 +75,9 @@ if ($effectiveDrop > 0):
   <?php endforeach; ?>
   </tbody>
 </table>
+<?php if (!$medalsUnlocked): ?>
+  <p class="sub">Medals show once week 3 is fully scored.</p>
+<?php endif; ?>
 
 <?php if ($week): ?>
   <h2>Week <?= (int)$week['week_number'] ?></h2>

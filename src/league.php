@@ -129,6 +129,38 @@ function week_pick_counts(int $weekId): array
     return $counts;
 }
 
+/** True once every game in a week has been scored (and the week has at least one game). */
+function week_all_games_final(int $weekId): bool
+{
+    $counts = db_one(
+        "SELECT COUNT(*) AS total, SUM(status = 'final') AS done FROM games WHERE week_id = ?",
+        [$weekId]
+    );
+    return $counts && (int)$counts['total'] > 0 && (int)$counts['total'] === (int)$counts['done'];
+}
+
+/**
+ * Medals (standings and leaderboard alike) stay hidden until early results even out
+ * a little - specifically, until the given week number is fully scored. Change
+ * $afterWeek if you want the reveal to happen sooner or later.
+ */
+function season_medals_unlocked(int $seasonId, int $afterWeek = 3): bool
+{
+    $week = db_one('SELECT id FROM weeks WHERE season_id = ? AND week_number = ?', [$seasonId, $afterWeek]);
+    return $week !== null && week_all_games_final((int)$week['id']);
+}
+
+/** True if the given winner had fewer picks than the team they beat. */
+function beat_the_odds(?int $winnerId, int $homeTeamId, int $awayTeamId, array $counts): bool
+{
+    if ($winnerId === null) {
+        return false;
+    }
+    $winnerCount = $winnerId === $homeTeamId ? ($counts['home'] ?? 0) : ($counts['away'] ?? 0);
+    $loserCount = $winnerId === $homeTeamId ? ($counts['away'] ?? 0) : ($counts['home'] ?? 0);
+    return $winnerCount < $loserCount;
+}
+
 function week_bye_teams(int $weekId): array
 {
     $week = week_find($weekId);

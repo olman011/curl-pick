@@ -38,6 +38,7 @@ $isArchive = (int)$season['is_active'] !== 1;
   <?php
   // Easy to tweak: swap these for different emoji, or change the streak threshold below.
   $medals = [1 => '🥇', 2 => '🥈', 3 => '🥉'];
+  $medalsUnlocked = season_medals_unlocked((int)$season['id']);
   $streakFlame = '🔥';
   $streakMinimum = 3;
   $streaks = team_win_streaks((int)$season['id']);
@@ -61,7 +62,7 @@ $isArchive = (int)$season['is_active'] !== 1;
       $streak = $streaks[(int)$row['id']] ?? 0;
   ?>
     <tr>
-      <td><?= $medals[$tier] ?? $rank ?></td>
+      <td><?= $medalsUnlocked ? ($medals[$tier] ?? $rank) : $rank ?></td>
       <td><?= h($row['name']) ?><?= $streak >= $streakMinimum ? ' ' . $streakFlame : '' ?></td>
       <td class="num"><?= $row['played'] ?></td>
       <td class="num"><?= $row['wins'] ?></td>
@@ -71,4 +72,7 @@ $isArchive = (int)$season['is_active'] !== 1;
   <?php endforeach; ?>
   </tbody>
 </table>
+<?php if (!$medalsUnlocked): ?>
+  <p class="sub">Medals show once week 3 is fully scored.</p>
+<?php endif; ?>
 <?php layout_footer();

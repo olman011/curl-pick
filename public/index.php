@@ -111,21 +111,26 @@ $pickCounts = $locked ? week_pick_counts((int)$week['id']) : [];
         <?php endif; ?>
       </div>
       <div class="matchup">
-        <?php $c = $locked ? ($pickCounts[(int)$game['id']] ?? ['home' => 0, 'away' => 0]) : null; ?>
-        <label class="pick">
+        <?php
+        $c = $locked ? ($pickCounts[(int)$game['id']] ?? ['home' => 0, 'away' => 0]) : ['home' => 0, 'away' => 0];
+        $isUpset = $locked && beat_the_odds($winner, (int)$game['home_team_id'], (int)$game['away_team_id'], $c);
+        ?>
+        <label class="pick <?= $isUpset && $winner === (int)$game['home_team_id'] ? 'underdog-win' : '' ?>">
           <input type="radio" name="pick[<?= (int)$game['id'] ?>]" value="<?= (int)$game['home_team_id'] ?>"
                  <?= $picked === (int)$game['home_team_id'] ? 'checked' : '' ?> <?= $locked ? 'disabled' : '' ?>>
           <span>
             <?php if ($locked): ?><span class="pick-num pick-num-left"><?= $c['home'] ?></span><?php endif; ?>
             <?= h($game['home_name']) ?> <span class="team-record">(<?= h($records[(int)$game['home_team_id']] ?? '0:0') ?>)</span>
+            <?php if ($isUpset && $winner === (int)$game['home_team_id']): ?><span class="tag tag-underdog" title="Won despite fewer picks">beat the odds</span><?php endif; ?>
           </span>
         </label>
         <div class="vs">vs</div>
-        <label class="pick">
+        <label class="pick <?= $isUpset && $winner === (int)$game['away_team_id'] ? 'underdog-win' : '' ?>">
           <input type="radio" name="pick[<?= (int)$game['id'] ?>]" value="<?= (int)$game['away_team_id'] ?>"
                  <?= $picked === (int)$game['away_team_id'] ? 'checked' : '' ?> <?= $locked ? 'disabled' : '' ?>>
           <span>
             <?= h($game['away_name']) ?> <span class="team-record">(<?= h($records[(int)$game['away_team_id']] ?? '0:0') ?>)</span>
+            <?php if ($isUpset && $winner === (int)$game['away_team_id']): ?><span class="tag tag-underdog" title="Won despite fewer picks">beat the odds</span><?php endif; ?>
             <?php if ($locked): ?><span class="pick-num pick-num-right"><?= $c['away'] ?></span><?php endif; ?>
           </span>
         </label>

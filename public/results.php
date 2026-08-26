@@ -56,23 +56,26 @@ if (!$week) {
 $games = week_results_summary((int)$week['id']);
 $picks = user_picks_for_week((int)$user['id'], (int)$week['id']);
 $locked = week_is_locked($week);
+$pickCounts = $locked ? week_pick_counts((int)$week['id']) : [];
 if (!$games): ?>
   <div class="card">No games scheduled.</div>
 <?php else: foreach ($games as $game):
     $winner = $game['winner_id'];
     $picked = $picks[(int)$game['id']] ?? null;
+    $counts = $pickCounts[(int)$game['id']] ?? ['home' => 0, 'away' => 0];
+    $isUpset = $locked && beat_the_odds($winner, (int)$game['home_team_id'], (int)$game['away_team_id'], $counts);
 ?>
   <div class="game">
     <div class="game-meta">
       <span><?= $game['location'] ? h($game['location']) : '&nbsp;' ?></span>
       <span><?= $game['status'] === 'final' ? 'Final' : 'Scheduled' ?></span>
     </div>
-    <div class="result-team <?= $winner === (int)$game['home_team_id'] ? 'win' : '' ?>">
-      <span><?= h($game['home_name']) ?></span>
+    <div class="result-team <?= $winner === (int)$game['home_team_id'] ? 'win' : '' ?> <?= $isUpset && $winner === (int)$game['home_team_id'] ? 'underdog' : '' ?>">
+      <span><?= h($game['home_name']) ?><?= $isUpset && $winner === (int)$game['home_team_id'] ? ' <span class="tag tag-underdog" title="Won despite fewer picks">beat the odds</span>' : '' ?></span>
       <span class="score"><?= $game['status'] === 'final' ? (int)$game['home_score'] : '&ndash;' ?></span>
     </div>
-    <div class="result-team <?= $winner === (int)$game['away_team_id'] ? 'win' : '' ?>">
-      <span><?= h($game['away_name']) ?></span>
+    <div class="result-team <?= $winner === (int)$game['away_team_id'] ? 'win' : '' ?> <?= $isUpset && $winner === (int)$game['away_team_id'] ? 'underdog' : '' ?>">
+      <span><?= h($game['away_name']) ?><?= $isUpset && $winner === (int)$game['away_team_id'] ? ' <span class="tag tag-underdog" title="Won despite fewer picks">beat the odds</span>' : '' ?></span>
       <span class="score"><?= $game['status'] === 'final' ? (int)$game['away_score'] : '&ndash;' ?></span>
     </div>
     <?php if ($locked): ?>
