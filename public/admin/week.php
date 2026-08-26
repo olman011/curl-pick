@@ -192,7 +192,7 @@ layout_header('Week ' . (int)$week['week_number']);
   <?= csrf_field() ?>
   <input type="hidden" name="week_id" value="<?= (int)$week['id'] ?>">
   <input type="hidden" name="action" value="scores">
-  <p class="muted">Leave both boxes blank to mark a game as not played yet. Equal scores count as a tie and score no pick points.</p>
+  <p class="muted">Leave both boxes blank (or enter 0-0) to mark a game as not played yet - it won't count toward either team's record. Come back and enter the real score once they've made it up.</p>
   <?php foreach ($games as $game): ?>
     <div class="row" style="align-items:flex-end">
       <label class="field"><?= h($game['home_name']) ?>

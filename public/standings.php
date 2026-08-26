@@ -20,7 +20,7 @@ $isArchive = (int)$season['is_active'] !== 1;
 ?>
 <h1>Team standings</h1>
 <p class="sub">Season: <?= h($season['name']) ?><?= $isArchive ? ' (archive)' : '' ?></p>
-<p class="sub">2 points for a win, 1 for a tie. Diff is total points scored minus allowed.</p>
+<p class="sub">Ranked by win percentage.</p>
 
 <?php if (count($seasons) > 1): ?>
 <div class="week-nav">
@@ -32,7 +32,7 @@ $isArchive = (int)$season['is_active'] !== 1;
 
 <table>
   <thead>
-    <tr><th>#</th><th>Team</th><th class="num">GP</th><th class="num">W</th><th class="num">L</th><th class="num">T</th><th class="num">Pts</th><th class="num">Diff</th></tr>
+    <tr><th>#</th><th>Team</th><th class="num">GP</th><th class="num">W</th><th class="num">L</th><th class="num">Win%</th></tr>
   </thead>
   <tbody>
   <?php
@@ -44,32 +44,29 @@ $isArchive = (int)$season['is_active'] !== 1;
   $position = 0;
   $tier = 0;
   $rank = 0;
-  $prevPoints = null;
-  $prevDiff = null;
+  $prevPct = null;
   foreach (standings((int)$season['id']) as $row): $position++;
-      // Teams tied on points and diff share a tier. $rank (position-based, with the
+      // Teams tied on win percentage share a tier. $rank (position-based, with the
       // usual sports-style skip after a tie) drives the plain number shown once we're
       // past 3rd. $tier counts distinct scoring tiers with no skipping, so the 1st,
       // 2nd, and 3rd *tiers* always get gold/silver/bronze - even if an earlier tier
       // had multiple teams in it (e.g. two teams tied for 2nd still leaves a real
       // 3rd tier that gets bronze, rather than being skipped past medal range).
-      if ($row['points'] !== $prevPoints || $row['diff'] !== $prevDiff) {
+      $pct = round($row['win_pct'], 4);
+      if ($pct !== $prevPct) {
           $rank = $position;
           $tier++;
       }
-      $prevPoints = $row['points'];
-      $prevDiff = $row['diff'];
+      $prevPct = $pct;
       $streak = $streaks[(int)$row['id']] ?? 0;
   ?>
     <tr>
       <td><?= $medals[$tier] ?? $rank ?></td>
       <td><?= h($row['name']) ?><?= $streak >= $streakMinimum ? ' ' . $streakFlame : '' ?></td>
-      <td class="num"><?= (int)$row['played'] ?></td>
-      <td class="num"><?= (int)$row['wins'] ?></td>
-      <td class="num"><?= (int)$row['losses'] ?></td>
-      <td class="num"><?= (int)$row['ties'] ?></td>
-      <td class="num"><?= (int)$row['points'] ?></td>
-      <td class="num"><?= ((int)$row['diff'] > 0 ? '+' : '') . (int)$row['diff'] ?></td>
+      <td class="num"><?= $row['played'] ?></td>
+      <td class="num"><?= $row['wins'] ?></td>
+      <td class="num"><?= $row['losses'] ?></td>
+      <td class="num"><?= $row['played'] > 0 ? round($row['win_pct'] * 100) . '%' : '&ndash;' ?></td>
     </tr>
   <?php endforeach; ?>
   </tbody>

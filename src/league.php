@@ -312,41 +312,49 @@ function team_win_streaks(int $seasonId): array
     return $streaks;
 }
 
-/** Team standings, scoped to one season (defaults to the active one). */
+/**
+ * Team standings, scoped to one season (defaults to the active one). This league
+ * doesn't play ties, and a final score of 0-0 means the game didn't actually happen
+ * (teams couldn't make it) rather than a real result, so both are excluded from
+ * every team's win percentage - same as a game that hasn't been scored at all.
+ */
 function standings(?int $seasonId = null): array
 {
     $seasonId ??= (int)(season_active()['id'] ?? 0);
-    return db_all(
+    $rows = db_all(
         "SELECT t.id, t.name,
                 COUNT(r.game_id) AS played,
                 SUM(r.win) AS wins,
-                SUM(r.loss) AS losses,
-                SUM(r.tie) AS ties,
-                SUM(r.win) * 2 + SUM(r.tie) AS points,
-                SUM(r.scored) AS scored,
-                SUM(r.allowed) AS allowed,
-                SUM(r.scored) - SUM(r.allowed) AS diff
+                SUM(r.loss) AS losses
          FROM teams t
          LEFT JOIN (
             SELECT g.id AS game_id, g.home_team_id AS team_id,
                    g.home_score > g.away_score AS win,
-                   g.home_score < g.away_score AS loss,
-                   g.home_score = g.away_score AS tie,
-                   g.home_score AS scored, g.away_score AS allowed
-            FROM games g WHERE g.status = 'final' AND g.home_score IS NOT NULL AND g.away_score IS NOT NULL
+                   g.home_score < g.away_score AS loss
+            FROM games g
+            WHERE g.status = 'final' AND g.home_score IS NOT NULL AND g.away_score IS NOT NULL
+              AND NOT (g.home_score = 0 AND g.away_score = 0)
             UNION ALL
             SELECT g.id, g.away_team_id,
                    g.away_score > g.home_score,
-                   g.away_score < g.home_score,
-                   g.away_score = g.home_score,
-                   g.away_score, g.home_score
-            FROM games g WHERE g.status = 'final' AND g.home_score IS NOT NULL AND g.away_score IS NOT NULL
+                   g.away_score < g.home_score
+            FROM games g
+            WHERE g.status = 'final' AND g.home_score IS NOT NULL AND g.away_score IS NOT NULL
+              AND NOT (g.home_score = 0 AND g.away_score = 0)
          ) r ON r.team_id = t.id
          WHERE t.season_id = ? AND t.is_active = 1
-         GROUP BY t.id, t.name
-         ORDER BY points DESC, diff DESC, t.name",
+         GROUP BY t.id, t.name",
         [$seasonId]
     );
+    foreach ($rows as &$row) {
+        $row['played'] = (int)$row['played'];
+        $row['wins'] = (int)$row['wins'];
+        $row['losses'] = (int)$row['losses'];
+        $row['win_pct'] = $row['played'] > 0 ? $row['wins'] / $row['played'] : 0.0;
+    }
+    unset($row);
+    usort($rows, static fn($a, $b) => $b['win_pct'] <=> $a['win_pct'] ?: strcmp($a['name'], $b['name']));
+    return $rows;
 }
 
 function week_results_summary(int $weekId): array
