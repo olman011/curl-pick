@@ -87,6 +87,27 @@ function find_usable_invite(string $code): ?array
     return $invite;
 }
 
+/**
+ * Invalidates any existing unused reset for this user and issues a fresh one.
+ * $markIssued controls whether it's immediately flagged as "handled" (shown on the
+ * admin dashboard only while NOT issued) - pass true when an admin is issuing it
+ * directly, or when an automatic email just went out successfully; pass false when
+ * email delivery hasn't been confirmed, so it still surfaces for the admin to send
+ * manually as a fallback. issued_at is purely a bookkeeping flag - reset.php itself
+ * doesn't check it, so the token works either way once a person actually has it.
+ */
+function create_password_reset(int $userId, bool $markIssued): string
+{
+    db_run('UPDATE password_resets SET used_at = NOW() WHERE user_id = ? AND used_at IS NULL', [$userId]);
+    $token = bin2hex(random_bytes(24));
+    db_run(
+        'INSERT INTO password_resets (user_id, token_hash, issued_at, expires_at)
+         VALUES (?, ?, ' . ($markIssued ? 'NOW()' : 'NULL') . ', DATE_ADD(NOW(), INTERVAL 3 DAY))',
+        [$userId, hash('sha256', $token)]
+    );
+    return $token;
+}
+
 function create_user(string $name, string $email, string $password, bool $isAdmin = false): int
 {
     db_run(

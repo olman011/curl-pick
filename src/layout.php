@@ -13,7 +13,8 @@ function layout_header(string $title, bool $chrome = true): void
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#1857a4">
 <title><?= h($title) ?> &middot; <?= h($appName) ?></title>
-<link rel="stylesheet" href="/assets/app.css?v=6">
+<link rel="icon" type="image/svg+xml" href="/assets/rock.svg">
+<link rel="stylesheet" href="/assets/app.css?v=4">
 </head>
 <body>
 <header class="topbar">

@@ -18,16 +18,7 @@ if (is_post()) {
         db_run('UPDATE users SET is_active = 1 - is_active WHERE id = ?', [$userId]);
         flash('Member updated.');
     } elseif ($action === 'issue_reset' && $userId) {
-        $token = bin2hex(random_bytes(24));
-        db_run(
-            'UPDATE password_resets SET used_at = NOW() WHERE user_id = ? AND used_at IS NULL',
-            [$userId]
-        );
-        db_run(
-            'INSERT INTO password_resets (user_id, token_hash, issued_at, expires_at)
-             VALUES (?, ?, NOW(), DATE_ADD(NOW(), INTERVAL 3 DAY))',
-            [$userId, hash('sha256', $token)]
-        );
+        $token = create_password_reset($userId, true);
         $resetUrl = base_url('/reset.php?token=' . $token);
         $_SESSION['issued_reset'] = ['user_id' => $userId, 'url' => $resetUrl];
 
@@ -84,7 +75,8 @@ layout_header('Members');
 <?php endif; ?>
 
 <?php if ($pending): ?>
-  <h2>Reset requests</h2>
+  <h2>Reset requests needing manual help</h2>
+  <p class="sub">These members requested a reset, but the automatic email either failed or isn't configured - issue a link and send it yourself.</p>
   <?php foreach ($pending as $row): ?>
     <form method="post" class="card">
       <?= csrf_field() ?>
