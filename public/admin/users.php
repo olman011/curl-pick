@@ -17,6 +17,14 @@ if (is_post()) {
     } elseif ($action === 'toggle_active' && $userId && $userId !== (int)$admin['id']) {
         db_run('UPDATE users SET is_active = 1 - is_active WHERE id = ?', [$userId]);
         flash('Member updated.');
+    } elseif ($action === 'delete' && $userId && $userId !== (int)$admin['id']) {
+        // Picks and reset requests cascade away with the user; invites they created
+        // just lose their "created by" link (see the foreign keys in schema.sql).
+        $target = db_one('SELECT name FROM users WHERE id = ?', [$userId]);
+        if ($target) {
+            db_run('DELETE FROM users WHERE id = ?', [$userId]);
+            flash($target['name'] . ' was deleted.');
+        }
     } elseif ($action === 'issue_reset' && $userId) {
         $token = create_password_reset($userId, true);
         $resetUrl = base_url('/reset.php?token=' . $token);
@@ -100,6 +108,8 @@ layout_header('Members');
       <?php if ((int)$row['id'] !== (int)$admin['id']): ?>
         <button class="btn-small btn-secondary" type="submit" name="action" value="toggle_admin"><?= (int)$row['is_admin'] === 1 ? 'Remove admin' : 'Make admin' ?></button>
         <button class="btn-small btn-danger" type="submit" name="action" value="toggle_active"><?= (int)$row['is_active'] === 1 ? 'Disable' : 'Enable' ?></button>
+        <button class="btn-small btn-danger" type="submit" name="action" value="delete"
+                onclick="return confirm(<?= h(json_encode('Permanently delete ' . $row['name'] . '? All of their picks will be erased, which changes past pick counts and results. This cannot be undone. (Disable is the reversible option.)')) ?>)">Delete</button>
       <?php endif; ?>
     </div>
   </form>
