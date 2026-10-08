@@ -46,6 +46,15 @@ if (is_post()) {
         } else {
             flash('Enter a whole number of 0 or more.', 'error');
         }
+    } elseif ($action === 'hide' || $action === 'unhide') {
+        $id = post_int('season_id');
+        $season = $id ? season_find($id) : null;
+        if ($season && $action === 'hide' && (int)$season['is_active'] === 1) {
+            flash('Cannot hide the active season. Activate a different one first.', 'error');
+        } elseif ($season) {
+            db_run('UPDATE seasons SET is_hidden = ? WHERE id = ?', [$action === 'hide' ? 1 : 0, $id]);
+            flash($action === 'hide' ? 'Season hidden from members.' : 'Season is visible again.');
+        }
     } elseif ($action === 'delete') {
         $id = post_int('season_id');
         $season = $id ? season_find($id) : null;
@@ -59,7 +68,7 @@ if (is_post()) {
     redirect('/admin/seasons.php');
 }
 
-$seasons = seasons_all();
+$seasons = seasons_all(true);
 layout_header('Seasons');
 ?>
 <h1>Seasons</h1>
@@ -78,9 +87,10 @@ layout_header('Seasons');
   $teamCount = (int)db_value('SELECT COUNT(*) FROM teams WHERE season_id = ?', [$season['id']]);
   $weekCount = (int)db_value('SELECT COUNT(*) FROM weeks WHERE season_id = ?', [$season['id']]);
   $isActive = (int)$season['is_active'] === 1;
+  $isHidden = (int)$season['is_hidden'] === 1;
 ?>
   <div class="card">
-    <strong><?= h($season['name']) ?></strong><?= $isActive ? ' &middot; <span class="tag tag-open">active</span>' : '' ?>
+    <strong><?= h($season['name']) ?></strong><?= $isActive ? ' &middot; <span class="tag tag-open">active</span>' : '' ?><?= $isHidden ? ' &middot; <span class="tag tag-miss">hidden</span>' : '' ?>
     <div class="muted"><?= $teamCount ?> teams &middot; <?= $weekCount ?> weeks</div>
 
     <form method="post" class="row" style="margin-top:10px;align-items:center">
@@ -103,6 +113,12 @@ layout_header('Seasons');
           <button class="btn-small" type="submit">Make active</button>
         </form>
         <a class="btn btn-small btn-secondary" href="/standings.php?season=<?= (int)$season['id'] ?>">View archive</a>
+        <form method="post">
+          <?= csrf_field() ?>
+          <input type="hidden" name="action" value="<?= $isHidden ? 'unhide' : 'hide' ?>">
+          <input type="hidden" name="season_id" value="<?= (int)$season['id'] ?>">
+          <button class="btn-small btn-secondary" type="submit"><?= $isHidden ? 'Unhide' : 'Hide from members' ?></button>
+        </form>
         <form method="post" onsubmit="return confirm('Delete &quot;<?= h($season['name']) ?>&quot; and ALL its teams, weeks, games, and picks? This cannot be undone.')">
           <?= csrf_field() ?>
           <input type="hidden" name="action" value="delete">

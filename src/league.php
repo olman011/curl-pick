@@ -1,9 +1,11 @@
 <?php
 declare(strict_types=1);
 
-function seasons_all(): array
+/** Hidden seasons are left out unless asked for (the admin Seasons page asks for them). */
+function seasons_all(bool $includeHidden = false): array
 {
-    return db_all('SELECT * FROM seasons ORDER BY created_at DESC, id DESC');
+    $where = $includeHidden ? '' : 'WHERE is_hidden = 0';
+    return db_all("SELECT * FROM seasons $where ORDER BY created_at DESC, id DESC");
 }
 
 function season_find(int $id): ?array
@@ -20,7 +22,15 @@ function season_active(): ?array
 function season_resolve(?int $seasonId): ?array
 {
     if ($seasonId) {
-        return season_find($seasonId);
+        $season = season_find($seasonId);
+        // A hidden season is only viewable by admins; everyone else gets the active one.
+        if ($season && (int)$season['is_hidden'] === 1) {
+            $viewer = current_user();
+            if (!$viewer || (int)$viewer['is_admin'] !== 1) {
+                return season_active();
+            }
+        }
+        return $season;
     }
     return season_active();
 }
@@ -32,7 +42,8 @@ function season_activate(int $id): void
     $pdo->beginTransaction();
     try {
         db_run('UPDATE seasons SET is_active = 0');
-        db_run('UPDATE seasons SET is_active = 1 WHERE id = ?', [$id]);
+        // The active season can never be hidden, so activating also unhides.
+        db_run('UPDATE seasons SET is_active = 1, is_hidden = 0 WHERE id = ?', [$id]);
         $pdo->commit();
     } catch (Throwable $e) {
         $pdo->rollBack();
