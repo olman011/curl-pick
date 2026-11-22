@@ -26,6 +26,18 @@ if ($week && (int)$week['season_id'] !== (int)$season['id']) {
 if (!$week) {
     $week = $isArchive ? season_latest_week((int)$season['id']) : week_current();
 }
+
+// Members with a perfect week get a gold infinity badge by their name.
+// Weekly table: perfect in the week being shown. Season table: perfect in the most
+// recent week where every game has been scored.
+$perfectByWeek = perfect_weeks((int)$season['id']);
+$decidedWeeks = fully_decided_weeks((int)$season['id']);
+$latestDecidedWeekId = $decidedWeeks ? array_key_last($decidedWeeks) : null;
+$latestDecidedWeek = $latestDecidedWeekId ? week_find($latestDecidedWeekId) : null;
+$latestPerfect = $latestDecidedWeekId ? ($perfectByWeek[$latestDecidedWeekId] ?? []) : [];
+$perfectBadge = static function (bool $show, string $title): string {
+    return $show ? ' <span class="perfect-badge" title="' . h($title) . '">&infin;</span>' : '';
+};
 ?>
 <h1>Leaderboard</h1>
 <p class="sub">Season: <?= h($season['name']) ?><?= $isArchive ? ' (archive)' : '' ?></p>
@@ -68,7 +80,7 @@ if ($effectiveDrop > 0):
   ?>
     <tr class="<?= (int)$row['id'] === (int)$user['id'] ? 'me' : '' ?>">
       <td><?= $star ? '<span class="' . $star[1] . '" title="' . ($tier === 1 ? '1st' : ($tier === 2 ? '2nd' : '3rd')) . ' place">' . $star[0] . '</span>' : $rank ?></td>
-      <td><?= h($row['name']) ?></td>
+      <td><?= h($row['name']) ?><?= $perfectBadge(in_array((int)$row['id'], $latestPerfect, true), 'Perfect Week ' . (int)$latestDecidedWeek['week_number'] . ': every winner picked correctly') ?></td>
       <td class="num"><?= (int)$row['correct'] ?></td>
       <td class="num"><?= (int)$row['weeks_played'] ?></td>
     </tr>
@@ -77,6 +89,9 @@ if ($effectiveDrop > 0):
 </table>
 <?php if (!$medalsUnlocked): ?>
   <p class="sub">Medals show once week 3 is fully scored.</p>
+<?php endif; ?>
+<?php if ($latestPerfect): ?>
+  <p class="sub"><span class="perfect-badge">&infin;</span> = perfect Week <?= (int)$latestDecidedWeek['week_number'] ?> (every winner picked correctly).</p>
 <?php endif; ?>
 
 <?php if ($week): ?>
@@ -98,7 +113,7 @@ if ($effectiveDrop > 0):
     <?php $rank = 0; foreach ($rows as $row): $rank++; ?>
       <tr class="<?= (int)$row['id'] === (int)$user['id'] ? 'me' : '' ?>">
         <td><?= $rank ?></td>
-        <td><?= h($row['name']) ?></td>
+        <td><?= h($row['name']) ?><?= $perfectBadge(in_array((int)$row['id'], $perfectByWeek[(int)$week['id']] ?? [], true), 'Perfect week: every winner picked correctly') ?></td>
         <td class="num"><?= (int)$row['correct'] ?></td>
         <td class="num"><?= (int)$row['picks_made'] ?></td>
       </tr>

@@ -156,6 +156,8 @@ p.sub { color: var(--muted); margin: 0 0 16px; font-size: 14px; }
 .pick.underdog-win input:checked + span { background: var(--navy); }
 .dice-badge { font-size: 19px; line-height: 1; margin-left: 4px; vertical-align: -2px; cursor: help; }
 
+.perfect-badge { margin-left: 4px; font-weight: 800; color: #d4af37; cursor: help; }
+
 .star-gold { color: #d4af37; }
 .star-silver { color: #a8a8a8; }
 .star-bronze { color: #b06a2c; }

@@ -239,6 +239,63 @@ function weekly_leaderboard(int $weekId): array
     );
 }
 
+/**
+ * Weeks where every game has a decided winner, oldest first. A postponed game
+ * (unscored, or entered as 0-0) keeps its week out of this list until it's scored.
+ * @return array<int,int> week_id => number of games that week
+ */
+function fully_decided_weeks(int $seasonId): array
+{
+    $rows = db_all(
+        "SELECT g.week_id, COUNT(*) AS total,
+                SUM(g.status = 'final' AND g.home_score <> g.away_score) AS decided
+         FROM games g JOIN weeks w ON w.id = g.week_id
+         WHERE w.season_id = ?
+         GROUP BY g.week_id, w.week_number
+         ORDER BY w.week_number",
+        [$seasonId]
+    );
+    $weeks = [];
+    foreach ($rows as $row) {
+        if ((int)$row['total'] > 0 && (int)$row['total'] === (int)$row['decided']) {
+            $weeks[(int)$row['week_id']] = (int)$row['total'];
+        }
+    }
+    return $weeks;
+}
+
+/**
+ * Perfect weeks in a season: every winner picked correctly, in a week that is fully
+ * decided (see fully_decided_weeks).
+ * @return array<int,array<int,int>> week_id => user_ids who had a perfect week
+ */
+function perfect_weeks(int $seasonId): array
+{
+    $complete = fully_decided_weeks($seasonId);
+    if (!$complete) {
+        return [];
+    }
+
+    $rows = db_all(
+        "SELECT p.user_id, g.week_id,
+                SUM(p.picked_team_id = IF(g.home_score > g.away_score, g.home_team_id, g.away_team_id)) AS correct
+         FROM picks p
+         JOIN games g ON g.id = p.game_id
+         JOIN weeks w ON w.id = g.week_id
+         WHERE w.season_id = ? AND g.status = 'final' AND g.home_score <> g.away_score
+         GROUP BY p.user_id, g.week_id",
+        [$seasonId]
+    );
+    $perfect = [];
+    foreach ($rows as $row) {
+        $weekId = (int)$row['week_id'];
+        if (isset($complete[$weekId]) && (int)$row['correct'] === $complete[$weekId]) {
+            $perfect[$weekId][] = (int)$row['user_id'];
+        }
+    }
+    return $perfect;
+}
+
 /** Count of weeks in a season that have at least one final game. */
 function season_graded_week_count(int $seasonId): int
 {
