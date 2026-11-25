@@ -106,3 +106,9 @@ CREATE TABLE picks (
   CONSTRAINT fk_picks_game FOREIGN KEY (game_id) REFERENCES games(id) ON DELETE CASCADE,
   CONSTRAINT fk_picks_team FOREIGN KEY (picked_team_id) REFERENCES teams(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Small key/value store for site-wide options (currently just the chosen theme).
+CREATE TABLE settings (
+  name VARCHAR(64) NOT NULL PRIMARY KEY,
+  value VARCHAR(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

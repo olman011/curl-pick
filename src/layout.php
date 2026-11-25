@@ -5,16 +5,22 @@ function layout_header(string $title, bool $chrome = true): void
 {
     $user = current_user();
     $appName = (string)config('app.name');
+    $themeKey = theme_active_key();
+    $theme = themes_available()[$themeKey];
+    $previewing = theme_preview_key() !== null;
     ?>
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="<?= h($themeKey) ?>">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#1857a4">
+<meta name="theme-color" content="<?= h($theme['theme_color']) ?>">
 <title><?= h($title) ?> &middot; <?= h($appName) ?></title>
 <link rel="icon" type="image/svg+xml" href="/assets/rock.svg">
-<link rel="stylesheet" href="/assets/app.css?v=4">
+<link rel="stylesheet" href="<?= h(asset_url('/assets/app.css')) ?>">
+<?php if ($theme['css'] !== null): ?>
+<link rel="stylesheet" href="<?= h(asset_url('/assets/themes/' . $theme['css'])) ?>">
+<?php endif; ?>
 </head>
 <body>
 <header class="topbar">
@@ -38,6 +44,10 @@ function layout_header(string $title, bool $chrome = true): void
 <?php endif; ?>
 
 <main class="wrap">
+<?php if ($previewing): ?>
+  <div class="flash flash-ok">Previewing the <?= h($theme['label']) ?> theme &mdash; only you can see this.
+    <a href="/admin/theme.php">Back to themes</a> &middot; <a href="?theme_preview=off">Stop previewing</a></div>
+<?php endif; ?>
 <?php foreach (take_flashes() as $flash): ?>
   <div class="flash flash-<?= h($flash['type']) ?>"><?= h($flash['message']) ?></div>
 <?php endforeach; ?>

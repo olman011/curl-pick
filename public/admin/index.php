@@ -36,5 +36,6 @@ layout_header('Admin');
   <a href="/admin/teams.php">Teams</a>
   <a href="/admin/invites.php">Invites &amp; QR codes</a>
   <a href="/admin/users.php">Members</a>
+  <a href="/admin/theme.php">Site theme</a>
 </div>
 <?php layout_footer();

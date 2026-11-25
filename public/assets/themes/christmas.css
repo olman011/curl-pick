@@ -1,0 +1,65 @@
+/* Christmas theme. Loaded after app.css, so it only overrides what's different:
+   the palette variables, plus a few decorations (candy-cane stripe, snow, house). */
+
+:root {
+  --navy: #1f5a37;       /* evergreen: header, buttons, selected picks, links */
+  --navy-soft: #163f27;  /* darker pine: the tab bar */
+  --ice: #f4f9f5;        /* page background, a hint of snowy mint */
+  --line: #d3e4d8;
+  --text: #1b2a21;
+  --muted: #587064;
+  --red: #c1272d;
+  --green: #1c7c46;
+  --gold: #c9962b;       /* keyboard focus ring */
+}
+
+/* A curling house in evergreen, white and red, ringed with lights. */
+body::before {
+  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCA0MDAgNDAwJz48Y2lyY2xlIGN4PScyMDAnIGN5PScyMDAnIHI9JzE5MCcgZmlsbD0nIzFmNWEzNycvPjxjaXJjbGUgY3g9JzM2Ni4wJyBjeT0nMjAwLjAnIHI9JzgnIGZpbGw9JyNmZmZmZmYnLz48Y2lyY2xlIGN4PSczNTYuMCcgY3k9JzI1Ni44JyByPSc4JyBmaWxsPScjZjJjMTRlJy8+PGNpcmNsZSBjeD0nMzI3LjInIGN5PSczMDYuNycgcj0nOCcgZmlsbD0nI2ZmZmZmZicvPjxjaXJjbGUgY3g9JzI4My4wJyBjeT0nMzQzLjgnIHI9JzgnIGZpbGw9JyNmMmMxNGUnLz48Y2lyY2xlIGN4PScyMjguOCcgY3k9JzM2My41JyByPSc4JyBmaWxsPScjZmZmZmZmJy8+PGNpcmNsZSBjeD0nMTcxLjInIGN5PSczNjMuNScgcj0nOCcgZmlsbD0nI2YyYzE0ZScvPjxjaXJjbGUgY3g9JzExNy4wJyBjeT0nMzQzLjgnIHI9JzgnIGZpbGw9JyNmZmZmZmYnLz48Y2lyY2xlIGN4PSc3Mi44JyBjeT0nMzA2LjcnIHI9JzgnIGZpbGw9JyNmMmMxNGUnLz48Y2lyY2xlIGN4PSc0NC4wJyBjeT0nMjU2LjgnIHI9JzgnIGZpbGw9JyNmZmZmZmYnLz48Y2lyY2xlIGN4PSczNC4wJyBjeT0nMjAwLjAnIHI9JzgnIGZpbGw9JyNmMmMxNGUnLz48Y2lyY2xlIGN4PSc0NC4wJyBjeT0nMTQzLjInIHI9JzgnIGZpbGw9JyNmZmZmZmYnLz48Y2lyY2xlIGN4PSc3Mi44JyBjeT0nOTMuMycgcj0nOCcgZmlsbD0nI2YyYzE0ZScvPjxjaXJjbGUgY3g9JzExNy4wJyBjeT0nNTYuMicgcj0nOCcgZmlsbD0nI2ZmZmZmZicvPjxjaXJjbGUgY3g9JzE3MS4yJyBjeT0nMzYuNScgcj0nOCcgZmlsbD0nI2YyYzE0ZScvPjxjaXJjbGUgY3g9JzIyOC44JyBjeT0nMzYuNScgcj0nOCcgZmlsbD0nI2ZmZmZmZicvPjxjaXJjbGUgY3g9JzI4My4wJyBjeT0nNTYuMicgcj0nOCcgZmlsbD0nI2YyYzE0ZScvPjxjaXJjbGUgY3g9JzMyNy4yJyBjeT0nOTMuMycgcj0nOCcgZmlsbD0nI2ZmZmZmZicvPjxjaXJjbGUgY3g9JzM1Ni4wJyBjeT0nMTQzLjInIHI9JzgnIGZpbGw9JyNmMmMxNGUnLz48Y2lyY2xlIGN4PScyMDAnIGN5PScyMDAnIHI9JzE0MicgZmlsbD0nI2ZmZmZmZicvPjxjaXJjbGUgY3g9JzIwMCcgY3k9JzIwMCcgcj0nOTInIGZpbGw9JyNjMTI3MmQnLz48Y2lyY2xlIGN4PScyMDAnIGN5PScyMDAnIHI9JzMwJyBmaWxsPScjZmZmZmZmJy8+PC9zdmc+");
+}
+
+/* Header: candy-cane stripe along the bottom edge... */
+.topbar {
+  position: relative;
+  border-bottom: 6px solid transparent;
+}
+.topbar::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -6px;
+  height: 6px;
+  background: repeating-linear-gradient(-45deg, #c1272d 0, #c1272d 8px, #ffffff 8px, #ffffff 16px);
+  pointer-events: none;
+}
+
+/* ...and a light snowfall drifting down behind the title. */
+.topbar::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle at 20% 30%, rgba(255,255,255,.95) 1.6px, transparent 2.2px),
+    radial-gradient(circle at 70% 60%, rgba(255,255,255,.75) 1.2px, transparent 1.8px),
+    radial-gradient(circle at 45% 85%, rgba(255,255,255,.55) 2px, transparent 2.6px);
+  background-size: 61px 47px, 83px 59px, 107px 71px;
+  animation: xmas-snow 9s linear infinite;
+}
+.topbar > a { position: relative; z-index: 1; }
+@keyframes xmas-snow {
+  from { background-position: 0 0, 0 0, 0 0; }
+  to   { background-position: 0 47px, 0 59px, 0 71px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .topbar::before { animation: none; }
+}
+
+.brand::after { content: "\1F384"; font-size: 16px; }
+.foot::after { content: " \00B7  Happy holidays!"; }
+
+/* Text on the green bars was tinted blue in the base theme. */
+.topbar-user { color: #d9eadf; }
+.tabs a { color: #e6f2ea; }
+th { background: #eef6f0; }

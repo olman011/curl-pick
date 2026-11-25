@@ -19,6 +19,7 @@ require APP_ROOT . '/src/helpers.php';
 require APP_ROOT . '/src/auth.php';
 require APP_ROOT . '/src/league.php';
 require APP_ROOT . '/src/mailer.php';
+require APP_ROOT . '/src/themes.php';
 
 if (PHP_SAPI !== 'cli' && session_status() === PHP_SESSION_NONE) {
     session_set_cookie_params([
