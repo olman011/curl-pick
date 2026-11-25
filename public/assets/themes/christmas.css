@@ -47,7 +47,7 @@ body::before {
   background-size: 61px 47px, 83px 59px, 107px 71px;
   animation: xmas-snow 9s linear infinite;
 }
-.topbar > a { position: relative; z-index: 1; }
+.topbar > * { position: relative; z-index: 1; }
 @keyframes xmas-snow {
   from { background-position: 0 0, 0 0, 0 0; }
   to   { background-position: 0 47px, 0 59px, 0 71px; }

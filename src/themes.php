@@ -18,12 +18,26 @@ function themes_available(): array
             'theme_color' => '#1857a4',
             'swatches' => ['#1857a4', '#123f7a', '#c62b34', '#ffffff'],
         ],
+        'thanksgiving' => [
+            'label' => 'Thanksgiving',
+            'description' => 'Harvest orange, rust and gold on warm cream, with a woven-band header, drifting leaves and a turkey.',
+            'css' => 'thanksgiving.css',
+            'theme_color' => '#9a4a14',
+            'swatches' => ['#9a4a14', '#6e3410', '#e0a526', '#fbf6ec'],
+        ],
         'christmas' => [
             'label' => 'Christmas',
             'description' => 'Evergreen and red with a candy-cane header, light snowfall and a festive curling house.',
             'css' => 'christmas.css',
             'theme_color' => '#1f5a37',
             'swatches' => ['#1f5a37', '#163f27', '#c1272d', '#ffffff'],
+        ],
+        'newyear' => [
+            'label' => "New Year's",
+            'description' => 'Midnight indigo with a shimmering gold stripe, falling confetti and a curling house that strikes midnight.',
+            'css' => 'newyear.css',
+            'theme_color' => '#232a6b',
+            'swatches' => ['#232a6b', '#161b4a', '#d4af37', '#ffffff'],
         ],
     ];
 }

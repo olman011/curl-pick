@@ -1,4 +1,4 @@
-<?php
+<?php 
 declare(strict_types=1);
 
 function layout_header(string $title, bool $chrome = true): void

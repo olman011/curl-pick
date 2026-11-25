@@ -1,0 +1,70 @@
+/* New Year's theme. Loaded after app.css, so it only overrides what's different:
+   the palette variables, plus a few decorations (gold shimmer stripe, confetti, clock-face house). */
+
+:root {
+  --navy: #232a6b;       /* midnight indigo: header, buttons, selected picks, links */
+  --navy-soft: #161b4a;  /* deeper night: the tab bar */
+  --ice: #f5f6fb;        /* page background, a hint of silver */
+  --line: #d9dbea;
+  --text: #181a33;
+  --muted: #5d6180;
+  --red: #c62b34;
+  --green: #1c7c46;
+  --gold: #d4af37;       /* keyboard focus ring */
+}
+
+/* A curling house styled as a clock striking midnight. */
+body::before {
+  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCA0MDAgNDAwJz48Y2lyY2xlIGN4PScyMDAnIGN5PScyMDAnIHI9JzE5MCcgZmlsbD0nIzIzMmE2YicvPjxsaW5lIHgxPScyMDAuMCcgeTE9JzUwLjAnIHgyPScyMDAuMCcgeTI9JzE2LjAnIHN0cm9rZT0nI2Q0YWYzNycgc3Ryb2tlLXdpZHRoPScxMCcgc3Ryb2tlLWxpbmVjYXA9J3JvdW5kJy8+PGxpbmUgeDE9JzI3OS4wJyB5MT0nNjMuMicgeDI9JzI5Mi4wJyB5Mj0nNDAuNycgc3Ryb2tlPScjZDRhZjM3JyBzdHJva2Utd2lkdGg9JzYnIHN0cm9rZS1saW5lY2FwPSdyb3VuZCcvPjxsaW5lIHgxPSczMzYuOCcgeTE9JzEyMS4wJyB4Mj0nMzU5LjMnIHkyPScxMDguMCcgc3Ryb2tlPScjZDRhZjM3JyBzdHJva2Utd2lkdGg9JzYnIHN0cm9rZS1saW5lY2FwPSdyb3VuZCcvPjxsaW5lIHgxPSczNTAuMCcgeTE9JzIwMC4wJyB4Mj0nMzg0LjAnIHkyPScyMDAuMCcgc3Ryb2tlPScjZDRhZjM3JyBzdHJva2Utd2lkdGg9JzEwJyBzdHJva2UtbGluZWNhcD0ncm91bmQnLz48bGluZSB4MT0nMzM2LjgnIHkxPScyNzkuMCcgeDI9JzM1OS4zJyB5Mj0nMjkyLjAnIHN0cm9rZT0nI2Q0YWYzNycgc3Ryb2tlLXdpZHRoPSc2JyBzdHJva2UtbGluZWNhcD0ncm91bmQnLz48bGluZSB4MT0nMjc5LjAnIHkxPSczMzYuOCcgeDI9JzI5Mi4wJyB5Mj0nMzU5LjMnIHN0cm9rZT0nI2Q0YWYzNycgc3Ryb2tlLXdpZHRoPSc2JyBzdHJva2UtbGluZWNhcD0ncm91bmQnLz48bGluZSB4MT0nMjAwLjAnIHkxPSczNTAuMCcgeDI9JzIwMC4wJyB5Mj0nMzg0LjAnIHN0cm9rZT0nI2Q0YWYzNycgc3Ryb2tlLXdpZHRoPScxMCcgc3Ryb2tlLWxpbmVjYXA9J3JvdW5kJy8+PGxpbmUgeDE9JzEyMS4wJyB5MT0nMzM2LjgnIHgyPScxMDguMCcgeTI9JzM1OS4zJyBzdHJva2U9JyNkNGFmMzcnIHN0cm9rZS13aWR0aD0nNicgc3Ryb2tlLWxpbmVjYXA9J3JvdW5kJy8+PGxpbmUgeDE9JzYzLjInIHkxPScyNzkuMCcgeDI9JzQwLjcnIHkyPScyOTIuMCcgc3Ryb2tlPScjZDRhZjM3JyBzdHJva2Utd2lkdGg9JzYnIHN0cm9rZS1saW5lY2FwPSdyb3VuZCcvPjxsaW5lIHgxPSc1MC4wJyB5MT0nMjAwLjAnIHgyPScxNi4wJyB5Mj0nMjAwLjAnIHN0cm9rZT0nI2Q0YWYzNycgc3Ryb2tlLXdpZHRoPScxMCcgc3Ryb2tlLWxpbmVjYXA9J3JvdW5kJy8+PGxpbmUgeDE9JzYzLjInIHkxPScxMjEuMCcgeDI9JzQwLjcnIHkyPScxMDguMCcgc3Ryb2tlPScjZDRhZjM3JyBzdHJva2Utd2lkdGg9JzYnIHN0cm9rZS1saW5lY2FwPSdyb3VuZCcvPjxsaW5lIHgxPScxMjEuMCcgeTE9JzYzLjInIHgyPScxMDguMCcgeTI9JzQwLjcnIHN0cm9rZT0nI2Q0YWYzNycgc3Ryb2tlLXdpZHRoPSc2JyBzdHJva2UtbGluZWNhcD0ncm91bmQnLz48Y2lyY2xlIGN4PScyMDAnIGN5PScyMDAnIHI9JzE0MicgZmlsbD0nI2ZmZmZmZicvPjxjaXJjbGUgY3g9JzIwMCcgY3k9JzIwMCcgcj0nOTInIGZpbGw9JyNkNGFmMzcnLz48Y2lyY2xlIGN4PScyMDAnIGN5PScyMDAnIHI9JzMwJyBmaWxsPScjZmZmZmZmJy8+PGxpbmUgeDE9JzIwMCcgeTE9JzIwMCcgeDI9JzIwMCcgeTI9JzEyOCcgc3Ryb2tlPScjMjMyYTZiJyBzdHJva2Utd2lkdGg9JzgnIHN0cm9rZS1saW5lY2FwPSdyb3VuZCcvPjxjaXJjbGUgY3g9JzIwMCcgY3k9JzIwMCcgcj0nOScgZmlsbD0nIzIzMmE2YicvPjwvc3ZnPg==");
+}
+
+/* Header: a shimmering gold stripe along the bottom edge... */
+.topbar {
+  position: relative;
+  border-bottom: 6px solid transparent;
+}
+.topbar::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -6px;
+  height: 6px;
+  background: linear-gradient(90deg, #8d6b14, #f4dc7a, #c9a227, #fff3b0, #c9a227, #f4dc7a, #8d6b14) repeat-x;
+  background-size: 420px 100%;
+  animation: ny-shimmer 6s linear infinite;
+  pointer-events: none;
+}
+@keyframes ny-shimmer {
+  from { background-position: 0 0; }
+  to   { background-position: 420px 0; }
+}
+
+/* ...and confetti falling behind the title. */
+.topbar::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc5MCcgaGVpZ2h0PSc3MCcgdmlld0JveD0nMCAwIDkwIDcwJz48Y2lyY2xlIGN4PScxOScgY3k9JzM1JyByPScyLjQnIGZpbGw9JyNmMmMxNGUnLz48Y2lyY2xlIGN4PSc1NycgY3k9JzQ2JyByPScyLjQnIGZpbGw9JyNjZmQzZTYnLz48Y2lyY2xlIGN4PSc4MicgY3k9JzE3JyByPSczJyBmaWxsPScjZmY3YWE4Jy8+PC9zdmc+"), url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScxMjEnIGhlaWdodD0nODknIHZpZXdCb3g9JzAgMCAxMjEgODknPjxjaXJjbGUgY3g9JzE1JyBjeT0nNDknIHI9JzMnIGZpbGw9JyNmZjdhYTgnLz48cmVjdCB4PScxMTUnIHk9JzM4JyB3aWR0aD0nNCcgaGVpZ2h0PSczJyBmaWxsPScjN2FkM2ZmJyB0cmFuc2Zvcm09J3JvdGF0ZSg4OCAxMTUgMzgpJy8+PGNpcmNsZSBjeD0nMzQnIGN5PSc1Nicgcj0nMi40JyBmaWxsPScjN2FkM2ZmJy8+PC9zdmc+"), url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScxNTcnIGhlaWdodD0nMTEzJyB2aWV3Qm94PScwIDAgMTU3IDExMyc+PHJlY3QgeD0nMTAxJyB5PScxMDAnIHdpZHRoPSc0JyBoZWlnaHQ9JzInIGZpbGw9JyNmZjdhYTgnIHRyYW5zZm9ybT0ncm90YXRlKDE1IDEwMSAxMDApJy8+PHJlY3QgeD0nODknIHk9JzY2JyB3aWR0aD0nNScgaGVpZ2h0PSczJyBmaWxsPScjZmY3YWE4JyB0cmFuc2Zvcm09J3JvdGF0ZSg5OCA4OSA2NiknLz48Y2lyY2xlIGN4PScxNTEnIGN5PScxNycgcj0nMS44JyBmaWxsPScjY2ZkM2U2Jy8+PHJlY3QgeD0nMjYnIHk9Jzg4JyB3aWR0aD0nNicgaGVpZ2h0PSczJyBmaWxsPScjZmZmZmZmJyB0cmFuc2Zvcm09J3JvdGF0ZSgxNyAyNiA4OCknLz48L3N2Zz4=");
+  background-size: 90px 70px, 121px 89px, 157px 113px;
+  animation: ny-confetti 10s linear infinite;
+}
+.topbar > * { position: relative; z-index: 1; }
+@keyframes ny-confetti {
+  from { background-position: 0 0, 0 0, 0 0; }
+  to   { background-position: 0 70px, 0 89px, 0 113px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .topbar::before, .topbar::after { animation: none; }
+}
+
+.brand::after { content: "\1F386"; font-size: 16px; }
+.foot::after { content: " \00B7  Happy New Year!"; }
+
+/* Text on the indigo bars was tinted blue in the base theme. */
+.topbar-user { color: #dfe2f5; }
+.tabs a { color: #e4e6f7; }
+th { background: #eceef8; }
+/* The green info banners would look out of place on silver and indigo. */
+.flash-ok, .banner-open { background: #e8eafc; color: #232a6b; border-color: #c5cae9; }
